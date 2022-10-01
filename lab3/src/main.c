@@ -9,6 +9,7 @@ typedef struct TThreadToken {
     double* step;
     double start;
     int Cpoints;
+    unsigned int* state;
 } ThreadToken;
 
 void exit_with_msg(const char* msg, int return_code);
@@ -16,7 +17,7 @@ void* integral(void* arg);
 int min(int a, int b);
 
 int main(int argc, const char** argv) {
-    int Total_points = 10000000;
+    int Total_points = 100000000;
     double R, Total_Aria_Size;
     int CountThreads;
     if (argc < 2) {
@@ -32,7 +33,8 @@ int main(int argc, const char** argv) {
     Total_Aria_Size = R * 2;
     pthread_t* th = malloc(sizeof (pthread_t) * CountThreads);
     ThreadToken* token = malloc(sizeof(ThreadToken) * CountThreads);
-    if (th == NULL || token == NULL) {
+    unsigned int* states = malloc(sizeof (unsigned  int) * CountThreads);
+    if (th == NULL || token == NULL || states == NULL) {
         exit_with_msg("can't allocate memory", 1);
     }
     double start = -R;
@@ -43,6 +45,7 @@ int main(int argc, const char** argv) {
         token[i].step = &step;
         token[i].R = &R;
         token[i].Cpoints = min(Cpoints, Total_points - i*Cpoints);
+        token[i].state = &states[i];
         start += step;
     }
 
@@ -58,11 +61,12 @@ int main(int argc, const char** argv) {
         }
         Cpoints += token[i].Cpoints;
     }
-    printf("Exact answer is        : %.20lf\n", acos(-1)*R*R);
+//    printf("Exact answer is        : %.20lf\n", acos(-1)*R*R);
     printf("Answer is approximately: %.20lf\n",
            Total_Aria_Size*Total_Aria_Size*((double) Cpoints / (Total_points)));
     free(token);
     free(th);
+    free(states);
     return 0;
 }
 
@@ -84,11 +88,14 @@ void* integral(void* arg) {
     ThreadToken token = *((ThreadToken*) arg);
     double x, y, R;
     R = *token.R;
+    unsigned int *ustate = token.state;
+//    XOR multiple values together to get a semi-unique seed
+    *ustate = time(NULL) ^ getpid() ^ pthread_self();
     int attempts = token.Cpoints;
     token.Cpoints = 0;
     for (int i = 0; i < attempts; ++i) {
-        x = token.start + ((double )rand()/(double )(RAND_MAX)) * (*token.step);
-        y = (((double )rand()/(double )(RAND_MAX)) - 0.5) * 2*R;
+        x = token.start + ((double )rand_r(ustate)/(double )(RAND_MAX)) * (*token.step);
+        y = (((double)rand_r(ustate)/(double )(RAND_MAX)) - 0.5) * 2*R;
         if (in_circle(x,y, R)) {
             token.Cpoints++;
         }
