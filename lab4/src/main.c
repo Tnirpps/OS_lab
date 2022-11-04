@@ -24,11 +24,11 @@ const char* SHARED_COND_NAME[] = {"1_shared_cond", "2_shared_cond"};
 int write_to_process(char* sharedFile, pthread_mutex_t* mutex, pthread_cond_t* condition,  const char c) {
     check_ok(pthread_mutex_lock(mutex), 0, "Error locking mutex in parent!\n")
     while (sharedFile[0] != 0) {
-        check_ok(pthread_cond_wait(condition, mutex), 0, "Error waiting cond in child!\n")
+        check_ok(pthread_cond_wait(condition, mutex), 0, "Error waiting cond in parent!\n")
     }
     sharedFile[0] = c;
-    check_ok(pthread_cond_signal(condition), 0, "Error sending signal in child!\n")
-    check_ok(pthread_mutex_unlock(mutex), 0, "Error unlocking mutex in child!\n")
+    check_ok(pthread_cond_signal(condition), 0, "Error sending signal in parent!\n")
+    check_ok(pthread_mutex_unlock(mutex), 0, "Error unlocking mutex in parent!\n")
     return 0;
 }
 
@@ -121,14 +121,14 @@ int main() {
                 if (c == '\n') proc_index ^= 1;
             }
             for (int i = 0; i < child_count; ++i) {
-                check_ok(pthread_mutex_lock(mutex[i]), 0, "Error locking mutex in child!\n")
+                check_ok(pthread_mutex_lock(mutex[i]), 0, "Error locking mutex in parent!\n")
                 while (sharedFile[i][0] != 0) {
-                    check_ok(pthread_cond_wait(condition[i], mutex[i]), 0, "Error waiting cond in child!\n")
+                    check_ok(pthread_cond_wait(condition[i], mutex[i]), 0, "Error waiting cond in parent!\n")
                 }
                 sharedFile[i][0] = -1;
-                check_ok(pthread_cond_signal(condition[i]), 0, "Error sending signal in child!\n")
-                check_ok(pthread_mutex_unlock(mutex[i]), 0, "Error unlocking mutex in child!\n")
-                check_wrong(munmap(sharedFile[i], SHARED_MEMORY_SIZE), -1, "Error unmapping fd1!")
+                check_ok(pthread_cond_signal(condition[i]), 0, "Error sending signal in parent!\n")
+                check_ok(pthread_mutex_unlock(mutex[i]), 0, "Error unlocking mutex in parent!\n")
+                check_wrong(munmap(sharedFile[i], SHARED_MEMORY_SIZE), -1, "Error unmapping sharedFile!")
             }
         }
 
