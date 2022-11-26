@@ -17,8 +17,8 @@ int main(int argc, const char** argv) {
     check_wrong(handle, NULL, "Error opening dynamic library!\n")
     int (*GCD)(int, int);
     float (*Square)(float, float);
-    *(void**) (&GCD) = dlsym(handle, GCD_NAME);
-    *(void**) (&Square) = dlsym(handle, SQUARE_NAME);
+    GCD = dlsym(handle, GCD_NAME);
+    Square = dlsym(handle, SQUARE_NAME);
     char* error = dlerror();
     check(error, NULL, error)
     int q;
@@ -34,8 +34,8 @@ int main(int argc, const char** argv) {
                     handle = dlopen(DYN_LIB_1, RTLD_LAZY);
                 }
                 check_wrong(handle, NULL, "Error opening dynamic library!\n")
-                *(void**) (&GCD) = dlsym(handle, GCD_NAME);
-                *(void**) (&Square) = dlsym(handle, SQUARE_NAME);
+                GCD = dlsym(handle, GCD_NAME);
+                Square = dlsym(handle, SQUARE_NAME);
                 error = dlerror();
                 check(error, NULL, error)
                 /* switch between 0 and 1 */

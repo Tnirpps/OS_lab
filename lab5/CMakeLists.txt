@@ -22,6 +22,4 @@ add_executable(stat_main2 ./src/main.c)
 target_link_libraries(stat_main1 PRIVATE Dyn1)
 target_link_libraries(stat_main2 PRIVATE Dyn2)
 
-target_link_libraries(dyn_main PRIVATE Dyn1)
-target_link_libraries(dyn_main PRIVATE Dyn2)
 target_link_libraries(dyn_main PRIVATE libdl.so)
